@@ -3,447 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>프리미엄 벽돌 깨기</title>
+    <title>학생 지원 및 출석 관리 시스템</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            --bg-color: #0f172a;
-            --text-color: #f8fafc;
-            --accent-color: #38bdf8;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-            overflow: hidden;
-            touch-action: none;
-        }
-
-        #game-container {
-            position: relative;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 2px solid #334155;
-        }
-
-        canvas {
-            display: block;
-            background: linear-gradient(to bottom, #1e293b, #0f172a);
-        }
-
-        .ui-layer {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            display: flex;
-            justify-content: space-between;
-            pointer-events: none;
-            font-weight: bold;
-            font-size: 1.2rem;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(4px);
-            z-index: 10;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        button {
-            padding: 12px 32px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: white;
-            background: var(--accent-color);
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.2s, background 0.2s;
-            margin-top: 20px;
-        }
-
-        button:hover {
-            transform: scale(1.05);
-            background: #0ea5e9;
-        }
-
-        h1 { margin: 0; color: var(--accent-color); }
-        p { margin: 10px 0; opacity: 0.8; }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f3f4f6; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .status-btn.active { border-color: transparent; ring: 2px; ring-offset: 2px; }
     </style>
 </head>
-<body>
+<body class="bg-gray-50 text-gray-800">
 
-    <div id="game-container">
-        <canvas id="gameCanvas"></canvas>
+    <!-- Navigation -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-user-graduate text-2xl"></i>
+                    <span class="font-bold text-xl tracking-tight">에듀케어 관리 시스템</span>
+                </div>
+                <div class="hidden md:flex space-x-4">
+                    <button onclick="showTab('dashboard')" class="hover:bg-indigo-500 px-3 py-2 rounded-md text-sm font-medium">대시보드</button>
+                    <button onclick="showTab('students')" class="hover:bg-indigo-500 px-3 py-2 rounded-md text-sm font-medium">학생 등록</button>
+                    <button onclick="showTab('attendance')" class="hover:bg-indigo-500 px-3 py-2 rounded-md text-sm font-medium">출석 체크</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Navigation -->
+    <div class="md:hidden flex justify-around bg-white border-b py-2 text-indigo-600 font-medium">
+        <button onclick="showTab('dashboard')"><i class="fas fa-chart-line"></i></button>
+        <button onclick="showTab('students')"><i class="fas fa-users"></i></button>
+        <button onclick="showTab('attendance')"><i class="fas fa-check-square"></i></button>
+    </div>
+
+    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         
-        <div class="ui-layer">
-            <div id="score-display">점수: 0</div>
-            <div id="lives-display">생명: ❤️❤️❤️</div>
-        </div>
+        <!-- Dashboard Tab -->
+        <section id="dashboard" class="tab-content active space-y-6">
+            <h2 class="text-2xl font-bold text-gray-900">시스템 요약</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="card p-6 border-l-4 border-indigo-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-bold">전체 등록 학생</p>
+                            <h3 id="stat-total" class="text-3xl font-bold">0명</h3>
+                        </div>
+                        <i class="fas fa-users text-indigo-200 text-4xl"></i>
+                    </div>
+                </div>
+                <div class="card p-6 border-l-4 border-green-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-bold">오늘 출석</p>
+                            <h3 id="stat-present" class="text-3xl font-bold text-green-600">0명</h3>
+                        </div>
+                        <i class="fas fa-user-check text-green-200 text-4xl"></i>
+                    </div>
+                </div>
+                <div class="card p-6 border-l-4 border-red-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-bold">오늘 결석</p>
+                            <h3 id="stat-absent" class="text-3xl font-bold text-red-600">0명</h3>
+                        </div>
+                        <i class="fas fa-user-times text-red-200 text-4xl"></i>
+                    </div>
+                </div>
+            </div>
 
-        <!-- 시작 화면 -->
-        <div id="start-screen" class="overlay">
-            <h1>BRICK BREAKER</h1>
-            <p>마우스를 움직여 패들을 조종하세요</p>
-            <button id="start-btn">게임 시작</button>
-        </div>
+            <!-- Graph Placeholder / Recent Activity -->
+            <div class="card p-6">
+                <h3 class="font-bold mb-4">최근 출석 추이</h3>
+                <div class="h-32 bg-gray-100 rounded-lg flex items-end justify-around p-2">
+                    <div class="w-8 bg-indigo-400 rounded-t" style="height: 40%"></div>
+                    <div class="w-8 bg-indigo-500 rounded-t" style="height: 65%"></div>
+                    <div class="w-8 bg-indigo-400 rounded-t" style="height: 50%"></div>
+                    <div class="w-8 bg-indigo-600 rounded-t" style="height: 85%"></div>
+                    <div class="w-8 bg-indigo-500 rounded-t" style="height: 70%"></div>
+                </div>
+                <p class="text-xs text-center mt-2 text-gray-400">최근 5일간의 출석률 데이터</p>
+            </div>
+        </section>
 
-        <!-- 게임 오버 화면 -->
-        <div id="game-over-screen" class="overlay hidden">
-            <h1 id="result-title">GAME OVER</h1>
-            <p id="final-score">최종 점수: 0</p>
-            <button id="restart-btn">다시 시도</button>
+        <!-- Students Registration Tab -->
+        <section id="students" class="tab-content space-y-6">
+            <h2 class="text-2xl font-bold text-gray-900">학생 정보 관리</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Registration Form -->
+                <div class="card p-6 h-fit">
+                    <h3 class="font-bold text-lg mb-4">새 학생 등록</h3>
+                    <form id="student-form" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">이름</label>
+                            <input type="text" id="student-name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">학번/ID</label>
+                            <input type="text" id="student-id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition">학생 추가</button>
+                    </form>
+                </div>
+
+                <!-- Student List -->
+                <div class="lg:col-span-2 card p-6">
+                    <h3 class="font-bold text-lg mb-4">등록된 학생 목록</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">이름</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">학번</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">관리</th>
+                                </tr>
+                            </thead>
+                            <tbody id="student-list-body" class="bg-white divide-y divide-gray-200">
+                                <!-- Dynamic Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Attendance Check Tab -->
+        <section id="attendance" class="tab-content space-y-6">
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-gray-900">일일 출석 체크</h2>
+                <span id="current-date" class="bg-white px-4 py-2 rounded-full shadow text-sm font-bold text-indigo-600 border border-indigo-100"></span>
+            </div>
+            
+            <div class="card overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">학생 정보</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">상태 설정</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendance-list-body" class="bg-white divide-y divide-gray-200">
+                        <!-- Dynamic Content -->
+                    </tbody>
+                </table>
+                <div class="p-6 bg-gray-50 text-right">
+                    <button onclick="saveAttendance()" class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 font-bold transition">오늘 기록 저장</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Custom Alert Modal -->
+    <div id="alert-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4">
+            <h4 id="alert-title" class="text-lg font-bold mb-2">알림</h4>
+            <p id="alert-message" class="text-gray-600 mb-6"></p>
+            <button onclick="closeAlert()" class="w-full bg-indigo-600 text-white py-2 rounded-md">확인</button>
         </div>
     </div>
 
     <script>
-        /** @type {HTMLCanvasElement} */
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const scoreEl = document.getElementById('score-display');
-        const livesEl = document.getElementById('lives-display');
-        const startScreen = document.getElementById('start-screen');
-        const gameOverScreen = document.getElementById('game-over-screen');
-        const startBtn = document.getElementById('start-btn');
-        const restartBtn = document.getElementById('restart-btn');
+        // State Management
+        let students = JSON.parse(localStorage.getItem('students')) || [];
+        let attendanceRecord = JSON.parse(localStorage.getItem('attendanceRecord')) || {};
 
-        // 게임 설정
-        const SETTINGS = {
-            canvasWidth: 800,
-            canvasHeight: 600,
-            paddleHeight: 15,
-            paddleWidth: 100,
-            ballRadius: 8,
-            brickRowCount: 6,
-            brickColumnCount: 9,
-            brickPadding: 10,
-            brickOffsetTop: 60,
-            brickOffsetLeft: 35,
-            itemSize: 20,
-            colors: ['#ef4444', '#f97316', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6']
+        // Initialization
+        window.onload = () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('current-date').textContent = today;
+            updateUI();
         };
 
-        // 게임 상태
-        let state = {
-            score: 0,
-            lives: 3,
-            gameActive: false,
-            paddleX: (SETTINGS.canvasWidth - SETTINGS.paddleWidth) / 2,
-            ballX: SETTINGS.canvasWidth / 2,
-            ballY: SETTINGS.canvasHeight - 50,
-            dx: 4,
-            dy: -4,
-            bricks: [],
-            items: [],
-            paddleWidth: SETTINGS.paddleWidth,
-            ballSpeedMultiplier: 1
-        };
-
-        // 초기화 함수
-        function init() {
-            canvas.width = SETTINGS.canvasWidth;
-            canvas.height = SETTINGS.canvasHeight;
-            
-            // 벽돌 생성
-            state.bricks = [];
-            for (let c = 0; c < SETTINGS.brickColumnCount; c++) {
-                state.bricks[c] = [];
-                for (let r = 0; r < SETTINGS.brickRowCount; r++) {
-                    state.bricks[c][r] = { 
-                        x: 0, 
-                        y: 0, 
-                        status: 1, 
-                        color: SETTINGS.colors[r],
-                        points: (SETTINGS.brickRowCount - r) * 10 
-                    };
-                }
-            }
+        // Tab Navigation
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
         }
 
-        // 입력 처리
-        function mouseMoveHandler(e) {
-            const rect = canvas.getBoundingClientRect();
-            const relativeX = e.clientX - rect.left;
-            if (relativeX > 0 && relativeX < canvas.width) {
-                state.paddleX = relativeX - state.paddleWidth / 2;
-                
-                // 경계 제한
-                if (state.paddleX < 0) state.paddleX = 0;
-                if (state.paddleX + state.paddleWidth > canvas.width) state.paddleX = canvas.width - state.paddleWidth;
-            }
-        }
-
-        function touchHandler(e) {
+        // Student Management Logic
+        document.getElementById('student-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            const relativeX = touch.clientX - rect.left;
-            if (relativeX > 0 && relativeX < canvas.width) {
-                state.paddleX = relativeX - state.paddleWidth / 2;
+            const name = document.getElementById('student-name').value;
+            const id = document.getElementById('student-id').value;
+
+            if (students.find(s => s.id === id)) {
+                showAlert('중복 오류', '이미 등록된 학번입니다.');
+                return;
             }
-        }, { passive: false };
 
-        // 충돌 감지 로직
-        function collisionDetection() {
-            for (let c = 0; c < SETTINGS.brickColumnCount; c++) {
-                for (let r = 0; r < SETTINGS.brickRowCount; r++) {
-                    const b = state.bricks[c][r];
-                    if (b.status === 1) {
-                        const brickWidth = (canvas.width - (SETTINGS.brickOffsetLeft * 2) - (SETTINGS.brickPadding * (SETTINGS.brickColumnCount - 1))) / SETTINGS.brickColumnCount;
-                        const brickHeight = 24;
+            students.push({ id, name });
+            localStorage.setItem('students', JSON.stringify(students));
+            e.target.reset();
+            updateUI();
+            showAlert('성공', '학생이 등록되었습니다.');
+        });
 
-                        if (state.ballX > b.x && state.ballX < b.x + brickWidth && state.ballY > b.y && state.ballY < b.y + brickHeight) {
-                            state.dy = -state.dy;
-                            b.status = 0;
-                            state.score += b.points;
-                            scoreEl.innerText = `점수: ${state.score}`;
-                            
-                            // 사운드 효과 (Web Audio API 사용 권장이나 여기서는 생략)
-                            playHitSound();
-
-                            // 아이템 생성 확률 (15%)
-                            if (Math.random() < 0.15) {
-                                createItem(b.x + brickWidth / 2, b.y + brickHeight / 2);
-                            }
-
-                            // 승리 조건 체크
-                            checkWin();
-                        }
-                    }
-                }
-            }
+        function deleteStudent(id) {
+            students = students.filter(s => s.id !== id);
+            localStorage.setItem('students', JSON.stringify(students));
+            updateUI();
         }
 
-        function createItem(x, y) {
-            const types = ['wide', 'slow', 'life'];
-            const type = types[Math.floor(Math.random() * types.length)];
-            state.items.push({ x, y, type, status: 1 });
+        // Attendance Logic
+        function setAttendance(studentId, status) {
+            const today = new Date().toISOString().split('T')[0];
+            if (!attendanceRecord[today]) attendanceRecord[today] = {};
+            attendanceRecord[today][studentId] = status;
+            localStorage.setItem('attendanceRecord', JSON.stringify(attendanceRecord));
+            updateUI();
         }
 
-        function moveItems() {
-            for (let i = 0; i < state.items.length; i++) {
-                const item = state.items[i];
-                if (item.status === 1) {
-                    item.y += 3;
-
-                    // 패들과 아이템 충돌
-                    if (item.y + SETTINGS.itemSize > canvas.height - SETTINGS.paddleHeight - 10 &&
-                        item.x > state.paddleX && item.x < state.paddleX + state.paddleWidth) {
-                        applyPowerUp(item.type);
-                        item.status = 0;
-                    }
-
-                    // 화면 밖으로 나가면 삭제
-                    if (item.y > canvas.height) item.status = 0;
-                }
-            }
-            state.items = state.items.filter(it => it.status === 1);
+        function saveAttendance() {
+            showAlert('저장 완료', '오늘의 출석 상태가 시스템에 기록되었습니다.');
+            updateUI();
         }
 
-        function applyPowerUp(type) {
-            if (type === 'wide') {
-                state.paddleWidth = 160;
-                setTimeout(() => state.paddleWidth = SETTINGS.paddleWidth, 8000);
-            } else if (type === 'slow') {
-                state.ballSpeedMultiplier = 0.6;
-                setTimeout(() => state.ballSpeedMultiplier = 1, 5000);
-            } else if (type === 'life') {
-                state.lives++;
-                updateLivesUI();
-            }
-        }
+        // UI Update Function
+        function updateUI() {
+            const today = new Date().toISOString().split('T')[0];
+            const studentListBody = document.getElementById('student-list-body');
+            const attendanceListBody = document.getElementById('attendance-list-body');
+            const todaysData = attendanceRecord[today] || {};
 
-        function updateLivesUI() {
-            livesEl.innerText = `생명: ${'❤️'.repeat(state.lives)}`;
-        }
+            // Update Dashboard Stats
+            document.getElementById('stat-total').textContent = `${students.length}명`;
+            const presentCount = Object.values(todaysData).filter(s => s === 'present').length;
+            const absentCount = Object.values(todaysData).filter(s => s === 'absent').length;
+            document.getElementById('stat-present').textContent = `${presentCount}명`;
+            document.getElementById('stat-absent').textContent = `${absentCount}명`;
 
-        function checkWin() {
-            let win = true;
-            for (let c = 0; c < SETTINGS.brickColumnCount; c++) {
-                for (let r = 0; r < SETTINGS.brickRowCount; r++) {
-                    if (state.bricks[c][r].status === 1) win = false;
-                }
-            }
-            if (win) {
-                endGame("축하합니다! 승리!");
-            }
-        }
-
-        // 그리기 함수들
-        function drawBall() {
-            ctx.beginPath();
-            ctx.arc(state.ballX, state.ballY, SETTINGS.ballRadius, 0, Math.PI * 2);
-            ctx.fillStyle = "#fff";
-            ctx.fill();
-            // 빛나는 효과
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = "#fff";
-            ctx.closePath();
-            ctx.shadowBlur = 0;
-        }
-
-        function drawPaddle() {
-            ctx.beginPath();
-            ctx.rect(state.paddleX, canvas.height - SETTINGS.paddleHeight - 10, state.paddleWidth, SETTINGS.paddleHeight);
-            ctx.fillStyle = "#38bdf8";
-            ctx.fill();
-            ctx.shadowBlur = 5;
-            ctx.shadowColor = "#38bdf8";
-            ctx.closePath();
-            ctx.shadowBlur = 0;
-        }
-
-        function drawBricks() {
-            const brickWidth = (canvas.width - (SETTINGS.brickOffsetLeft * 2) - (SETTINGS.brickPadding * (SETTINGS.brickColumnCount - 1))) / SETTINGS.brickColumnCount;
-            const brickHeight = 24;
-
-            for (let c = 0; c < SETTINGS.brickColumnCount; c++) {
-                for (let r = 0; r < SETTINGS.brickRowCount; r++) {
-                    if (state.bricks[c][r].status === 1) {
-                        const brickX = (c * (brickWidth + SETTINGS.brickPadding)) + SETTINGS.brickOffsetLeft;
-                        const brickY = (r * (brickHeight + SETTINGS.brickPadding)) + SETTINGS.brickOffsetTop;
-                        state.bricks[c][r].x = brickX;
-                        state.bricks[c][r].y = brickY;
-                        
-                        ctx.beginPath();
-                        ctx.roundRect(brickX, brickY, brickWidth, brickHeight, 4);
-                        ctx.fillStyle = state.bricks[c][r].color;
-                        ctx.fill();
-                        
-                        // 디테일 (상단 광택)
-                        ctx.fillStyle = "rgba(255,255,255,0.2)";
-                        ctx.fillRect(brickX, brickY, brickWidth, 4);
-                        ctx.closePath();
-                    }
-                }
-            }
-        }
-
-        function drawItems() {
-            state.items.forEach(item => {
-                ctx.beginPath();
-                ctx.arc(item.x, item.y, 10, 0, Math.PI * 2);
-                ctx.fillStyle = item.type === 'wide' ? '#fbbf24' : (item.type === 'slow' ? '#10b981' : '#f43f5e');
-                ctx.fill();
-                ctx.closePath();
+            // Update Student Table
+            studentListBody.innerHTML = '';
+            students.forEach(student => {
+                studentListBody.innerHTML += `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${student.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-500">${student.id}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button onclick="deleteStudent('${student.id}')" class="text-red-600 hover:text-red-900"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
             });
-        }
 
-        function playHitSound() {
-            // 오디오 소스가 없으므로 시각적 피드백이나 로직만 처리
-        }
-
-        // 게임 루프
-        function draw() {
-            if (!state.gameActive) return;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            drawBricks();
-            drawBall();
-            drawPaddle();
-            drawItems();
-            
-            collisionDetection();
-            moveItems();
-
-            // 벽 충돌 (좌우)
-            if (state.ballX + state.dx > canvas.width - SETTINGS.ballRadius || state.ballX + state.dx < SETTINGS.ballRadius) {
-                state.dx = -state.dx;
+            // Update Attendance Table
+            attendanceListBody.innerHTML = '';
+            if (students.length === 0) {
+                attendanceListBody.innerHTML = `<tr><td colspan="2" class="px-6 py-10 text-center text-gray-400">등록된 학생이 없습니다.</td></tr>`;
+            } else {
+                students.forEach(student => {
+                    const status = todaysData[student.id] || 'none';
+                    attendanceListBody.innerHTML += `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">${student.name}</div>
+                                <div class="text-xs text-gray-500">${student.id}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <div class="flex justify-center space-x-2">
+                                    <button onclick="setAttendance('${student.id}', 'present')" class="px-3 py-1 rounded-md text-xs font-bold border ${status === 'present' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-green-600 border-green-200 hover:bg-green-50'} transition">출석</button>
+                                    <button onclick="setAttendance('${student.id}', 'late')" class="px-3 py-1 rounded-md text-xs font-bold border ${status === 'late' ? 'bg-yellow-500 text-white border-yellow-500' : 'bg-white text-yellow-600 border-yellow-200 hover:bg-yellow-50'} transition">지각</button>
+                                    <button onclick="setAttendance('${student.id}', 'absent')" class="px-3 py-1 rounded-md text-xs font-bold border ${status === 'absent' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-red-600 border-red-200 hover:bg-red-50'} transition">결석</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
             }
-            // 벽 충돌 (천장)
-            if (state.ballY + state.dy < SETTINGS.ballRadius) {
-                state.dy = -state.dy;
-            } 
-            // 바닥 충돌 처리
-            else if (state.ballY + state.dy > canvas.height - SETTINGS.ballRadius - 10) {
-                if (state.ballX > state.paddleX && state.ballX < state.paddleX + state.paddleWidth) {
-                    // 패들 충돌 - 튕기는 각도 조절
-                    let collidePoint = state.ballX - (state.paddleX + state.paddleWidth / 2);
-                    collidePoint = collidePoint / (state.paddleWidth / 2);
-                    let angle = collidePoint * (Math.PI / 3);
-                    
-                    const speed = Math.sqrt(state.dx * state.dx + state.dy * state.dy);
-                    state.dx = speed * Math.sin(angle);
-                    state.dy = -speed * Math.cos(angle);
-                } else {
-                    state.lives--;
-                    updateLivesUI();
-                    if (!state.lives) {
-                        endGame("게임 오버");
-                    } else {
-                        resetBall();
-                    }
-                }
-            }
-
-            state.ballX += state.dx * state.ballSpeedMultiplier;
-            state.ballY += state.dy * state.ballSpeedMultiplier;
-
-            requestAnimationFrame(draw);
         }
 
-        function resetBall() {
-            state.ballX = canvas.width / 2;
-            state.ballY = canvas.height - 50;
-            state.dx = 4;
-            state.dy = -4;
-            state.paddleX = (canvas.width - state.paddleWidth) / 2;
+        // Alert Modal Helper
+        function showAlert(title, message) {
+            document.getElementById('alert-title').textContent = title;
+            document.getElementById('alert-message').textContent = message;
+            document.getElementById('alert-modal').classList.remove('hidden');
         }
 
-        function endGame(message) {
-            state.gameActive = false;
-            document.getElementById('result-title').innerText = message;
-            document.getElementById('final-score').innerText = `최종 점수: ${state.score}`;
-            gameOverScreen.classList.remove('hidden');
+        function closeAlert() {
+            document.getElementById('alert-modal').classList.add('hidden');
         }
-
-        function startGame() {
-            state.score = 0;
-            state.lives = 3;
-            state.gameActive = true;
-            state.paddleWidth = SETTINGS.paddleWidth;
-            state.ballSpeedMultiplier = 1;
-            scoreEl.innerText = `점수: 0`;
-            updateLivesUI();
-            init();
-            resetBall();
-            startScreen.classList.add('hidden');
-            gameOverScreen.classList.add('hidden');
-            draw();
-        }
-
-        // 이벤트 리스너
-        document.addEventListener('mousemove', mouseMoveHandler);
-        document.addEventListener('touchmove', touchHandler, { passive: false });
-        startBtn.addEventListener('click', startGame);
-        restartBtn.addEventListener('click', startGame);
-
-        // 초기 실행
-        init();
-
     </script>
 </body>
 </html>
